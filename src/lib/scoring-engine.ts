@@ -1,7 +1,13 @@
 import { DatasetUser, ScoringResult, RiskLevel, DeviationMetrics, UpiIdInfo, LinkDeepInspection } from "./types";
 
+/**
+ * Known payment ecosystem markers used for quick trust heuristics.
+ */
 const trustedDomains = ["razorpay", "paytm", "phonepe", "gpay", "bhim", "sbi", "hdfc", "icici", "axis"];
 
+/**
+ * Fast URL reputation classifier used before deeper inspection.
+ */
 function classifyLinkRisk(link?: string): "trusted" | "unknown" | "new" | "none" {
   if (!link) return "none";
   const lower = link.toLowerCase();
@@ -12,10 +18,19 @@ function classifyLinkRisk(link?: string): "trusted" | "unknown" | "new" | "none"
 
 // --- Payment Link Deep Inspection ---
 
+/**
+ * Lexical terms often seen in social-engineering payment URLs.
+ */
 const suspiciousKeywords = ["win", "free", "cash", "earn", "lucky", "refund", "prize", "offer", "claim", "lottery", "invest", "recharge", "cashback"];
 
+/**
+ * Domain allowlist used for lookalike-domain comparison.
+ */
 const legitimateDomains = ["razorpay.com", "paytm.com", "phonepe.com", "gpay.com", "bhim.com", "sbi.co.in", "hdfcbank.com", "icicibank.com", "axisbank.com", "amazon.in", "flipkart.com", "swiggy.com", "zomato.com"];
 
+/**
+ * Computes edit distance between two strings.
+ */
 function levenshteinDistance(a: string, b: string): number {
   const matrix: number[][] = [];
   for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -35,6 +50,8 @@ function levenshteinDistance(a: string, b: string): number {
 export function deepInspectLink(link?: string): LinkDeepInspection | undefined {
   if (!link) return undefined;
   const lower = link.toLowerCase().trim();
+
+  // Extract only host-like content from the input URL/string.
   const domainMatch = lower.replace(/https?:\/\//, "").split("/")[0].split("?")[0];
   const domain = domainMatch || lower;
 
@@ -79,6 +96,7 @@ export function computeBehavioralDrift(user: DatasetUser): number {
   const history = user.transactionHistory;
   if (history.length < 5) return 0;
 
+  // Fixed analysis point keeps this deterministic for demo/testing.
   const now = new Date("2026-02-19T12:00:00Z").getTime();
   const d14 = now - 14 * 24 * 60 * 60 * 1000;
   const d90 = now - 90 * 24 * 60 * 60 * 1000;
@@ -113,7 +131,7 @@ export function getAdaptiveRiskLevel(score: number, user: DatasetUser): RiskLeve
   const stdDev = computeUserStdDev(user);
   const cv = user.avgTransactionAmount > 0 ? stdDev / user.avgTransactionAmount : 0;
 
-  // High volatility users get raised thresholds; low volatility get lowered
+  // High volatility users get raised thresholds; low volatility users get lowered thresholds.
   let highThreshold = 70;
   let warnThreshold = 50;
 
@@ -138,8 +156,8 @@ export function computeConfidenceScore(ruleScore: number, mlScore: number): numb
   const agreement = 100 - Math.abs(ruleScore - mlScore);
   const signalStrength = (ruleScore + mlScore) / 2;
 
-  // High agreement + strong signals = high confidence
-  // Low agreement or weak signals = low confidence
+  // High agreement + strong signals = high confidence.
+  // Low agreement or weak signals = low confidence.
   if (signalStrength < 10) return Math.round(agreement * 0.3); // Weak signals → lower confidence
   if (agreement > 80) return Math.min(Math.round(60 + signalStrength * 0.4), 100);
   if (agreement > 50) return Math.min(Math.round(40 + signalStrength * 0.3), 90);
@@ -162,6 +180,7 @@ export function computeDeviations(
   previousCity?: string,
   previousTimestamp?: string
 ): DeviationMetrics {
+  // Normalize transaction against user's historical baseline.
   const amountDeviation = user.avgTransactionAmount > 0 ? amount / user.avgTransactionAmount : 0;
   const monthlySpendRatio = user.avgMonthlySpend > 0 ? (user.avgMonthlySpend + amount) / user.avgMonthlySpend : 0;
 
@@ -186,7 +205,7 @@ export function computeDeviations(
   const linkDeepInspection = deepInspectLink(paymentLink);
   const linkRiskScore = linkDeepInspection?.linkRiskScore ?? 0;
 
-  // Night transaction check (2AM - 5AM IST)
+  // Night transaction check (2AM - 5AM IST) and broader time-of-day risk shaping.
   let isNightTransaction = false;
   let transactionTimeRisk = 0;
   if (timestamp) {
@@ -212,7 +231,7 @@ export function computeDeviations(
     }
   }
 
-  // Beneficiary risk score
+  // Beneficiary risk score tuned for first-time + very-new UPI identities.
   let beneficiaryRiskScore = 0;
   if (isFirstTimeBeneficiary) beneficiaryRiskScore += 30;
   if (upiAgeDays < 7) beneficiaryRiskScore += 40;
@@ -516,6 +535,7 @@ export function computeMLScore(metrics: DeviationMetrics): {
 
   const mlScore = Math.round(iso.score * 0.5 + lgbm.score * 0.5);
 
+  // Human-readable model rationale for UI explainability.
   const mlReasons: string[] = [];
 
   const allContribs = [
@@ -565,7 +585,7 @@ export function getRiskLevel(score: number): RiskLevel {
 }
 
 /**
- * Full scoring pipeline.
+ * Full scoring pipeline from features -> rule + ML -> final decision output.
  */
 export function scoreTransaction(
   transactionId: string,
