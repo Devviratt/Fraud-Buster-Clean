@@ -69,8 +69,8 @@ export function deepInspectLink(link?: string): LinkDeepInspection | undefined {
   const lower = link.toLowerCase().trim();
 
   // Extract only host-like content from the input URL/string.
-  const domainMatch = lower.replace(/https?:\/\//, "").split("/")[0].split("?")[0];
-  const domain = domainMatch || lower;
+  const parsedHost = lower.replace(/https?:\/\//, "").split("/")[0].split("?")[0];
+  const domain = parsedHost || lower;
 
   const isShortened = ["bit.ly", "tinyurl", "shorturl"].some((s) => domain.includes(s));
   const hasSuspiciousKeywords = suspiciousKeywords.some((kw) => lower.includes(kw));
@@ -126,11 +126,11 @@ export function computeBehavioralDrift(user: DatasetUser): number {
 
   if (recent14.length < 2 || baseline90.length < 3) return 0;
 
-  const avg14 = recent14.reduce((s, t) => s + t.amount, 0) / recent14.length;
-  const avg90 = baseline90.reduce((s, t) => s + t.amount, 0) / baseline90.length;
+  const recentAverageAmount = recent14.reduce((s, t) => s + t.amount, 0) / recent14.length;
+  const baselineAverageAmount = baseline90.reduce((s, t) => s + t.amount, 0) / baseline90.length;
 
-  if (avg90 === 0) return 0;
-  const driftPct = Math.abs(avg14 - avg90) / avg90;
+  if (baselineAverageAmount === 0) return 0;
+  const driftPct = Math.abs(recentAverageAmount - baselineAverageAmount) / baselineAverageAmount;
   return Math.round(driftPct * 100);
 }
 
@@ -555,7 +555,7 @@ export function computeMLScore(metrics: DeviationMetrics): {
   // Human-readable model rationale for UI explainability.
   const mlReasons: string[] = [];
 
-  const allContribs: MlContributionCandidate[] = [
+  const rankedContributions: MlContributionCandidate[] = [
     ...Object.entries(iso.contributions).map(([k, v]) => ({ model: "Isolation Forest", feature: k, value: v, total: iso.score })),
     ...Object.entries(lgbm.contributions).map(([k, v]) => ({ model: "LightGBM", feature: k, value: v, total: lgbm.score })),
   ]
@@ -566,7 +566,7 @@ export function computeMLScore(metrics: DeviationMetrics): {
     const maxReasons = mlScore >= 50 ? 4 : mlScore >= 30 ? 2 : 1;
     const seen = new Set<string>();
 
-    for (const c of allContribs) {
+    for (const c of rankedContributions) {
       if (seen.size >= maxReasons) break;
       const key = c.feature.toLowerCase();
       if (seen.has(key)) continue;
