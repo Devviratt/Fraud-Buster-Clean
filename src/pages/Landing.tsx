@@ -442,6 +442,8 @@ const Landing = () => {
           <div className="flex gap-4 text-[11px]" style={{ color: "hsl(215,16%,55%)" }}>
             <Link to="/" className="hover:underline">Dashboard</Link>
             <Link to="/simulate" className="hover:underline">Simulate</Link>
+            <Link to="/privacy" className="hover:underline">Privacy</Link>
+            <Link to="/terms" className="hover:underline">Terms</Link>
           </div>
         </div>
       </footer>

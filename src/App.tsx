@@ -2,12 +2,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DemoProvider } from "@/lib/demo-context";
 import { LiveTransactionStoreProvider, ReviewedTransactionStoreProvider } from "@/lib/transaction-store";
 import Index from "./pages/Index";
 import Simulate from "./pages/Simulate";
 import Landing from "./pages/Landing";
+import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +27,9 @@ const App = () => (
                 <Route index element={<Index />} />
                 <Route path="simulate" element={<Simulate />} />
                 <Route path="landing" element={<Landing />} />
-                <Route path="*" element={<Navigate to="/landing" replace />} />
+                <Route path="privacy" element={<PrivacyPolicy />} />
+                <Route path="terms" element={<TermsConditions />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </ReviewedTransactionStoreProvider>
