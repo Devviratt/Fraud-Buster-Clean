@@ -1,5 +1,22 @@
 import { DatasetUser, ScoringResult, RiskLevel, DeviationMetrics, UpiIdInfo, LinkDeepInspection } from "./types";
 
+type LinkRiskClassification = "trusted" | "unknown" | "new" | "none";
+type ModelContributions = Record<string, number>;
+
+interface WeightedFeature {
+  name: string;
+  signal: number;
+  weight: number;
+  multiplier: number;
+}
+
+interface MlContributionCandidate {
+  model: "Isolation Forest" | "LightGBM";
+  feature: string;
+  value: number;
+  total: number;
+}
+
 /**
  * Known payment ecosystem markers used for quick trust heuristics.
  */
@@ -8,7 +25,7 @@ const trustedDomains = ["razorpay", "paytm", "phonepe", "gpay", "bhim", "sbi", "
 /**
  * Fast URL reputation classifier used before deeper inspection.
  */
-function classifyLinkRisk(link?: string): "trusted" | "unknown" | "new" | "none" {
+function classifyLinkRisk(link?: string): LinkRiskClassification {
   if (!link) return "none";
   const lower = link.toLowerCase();
   if (trustedDomains.some((d) => lower.includes(d))) return "trusted";
@@ -373,7 +390,7 @@ export function computeRuleScore(
 /**
  * Isolation Forest — linear scaling for extreme deviations.
  */
-export function computeIsolationForestScore(metrics: DeviationMetrics): { score: number; contributions: Record<string, number> } {
+export function computeIsolationForestScore(metrics: DeviationMetrics): { score: number; contributions: ModelContributions } {
   // Cross-feature interaction multipliers: co-occurring anomalies amplify each other
   const locationAndAmount = metrics.locationFlag && metrics.amountDeviation > 3 ? 1.25 : 1.0;
   const newUpiAndHighAmount = metrics.isFirstTimeBeneficiary && metrics.amountDeviation > 4 ? 1.20 : 1.0;
@@ -398,7 +415,7 @@ export function computeIsolationForestScore(metrics: DeviationMetrics): { score:
     salaryRatio <= 1.0 ? 0.15 + (salaryRatio - 0.6) / 0.4 * 0.35 :
     Math.min(0.5 + (salaryRatio - 1.0) / 2 * 0.5, 1.0);
 
-  const features: { name: string; signal: number; weight: number; multiplier: number }[] = [
+  const features: WeightedFeature[] = [
     { name: "Amount Deviation",   signal: amountSignal,                                             weight: 0.24, multiplier: locationAndAmount * newUpiAndHighAmount * newAccountHighAmount },
     { name: "Spend Ratio",        signal: spendSignal,                                              weight: 0.12, multiplier: 1.0 },
     { name: "Location Anomaly",   signal: metrics.locationFlag ? 1 : 0,                            weight: 0.14, multiplier: nightAndNewCity },
@@ -416,7 +433,7 @@ export function computeIsolationForestScore(metrics: DeviationMetrics): { score:
   // Normalize weights (they may sum slightly over 1 after adding new features)
   const totalWeight = features.reduce((s, f) => s + f.weight, 0);
 
-  const contributions: Record<string, number> = {};
+  const contributions: ModelContributions = {};
   let weightedSum = 0;
   for (const f of features) {
     const contrib = f.signal * (f.weight / totalWeight) * f.multiplier * 100;
@@ -431,8 +448,8 @@ export function computeIsolationForestScore(metrics: DeviationMetrics): { score:
 /**
  * LightGBM — magnitude-aware scoring with link deep inspection.
  */
-export function computeLightGBMScore(metrics: DeviationMetrics): { score: number; contributions: Record<string, number> } {
-  const contributions: Record<string, number> = {};
+export function computeLightGBMScore(metrics: DeviationMetrics): { score: number; contributions: ModelContributions } {
+  const contributions: ModelContributions = {};
 
   // Beneficiary risk: weighted by account age severity
   const bRisk = metrics.beneficiaryRiskScore;
@@ -527,8 +544,8 @@ export function computeMLScore(metrics: DeviationMetrics): {
   anomalyScore: number;
   fraudProbability: number;
   mlReasons: string[];
-  isoContributions: Record<string, number>;
-  lgbmContributions: Record<string, number>;
+  isoContributions: ModelContributions;
+  lgbmContributions: ModelContributions;
 } {
   const iso = computeIsolationForestScore(metrics);
   const lgbm = computeLightGBMScore(metrics);
@@ -538,7 +555,7 @@ export function computeMLScore(metrics: DeviationMetrics): {
   // Human-readable model rationale for UI explainability.
   const mlReasons: string[] = [];
 
-  const allContribs = [
+  const allContribs: MlContributionCandidate[] = [
     ...Object.entries(iso.contributions).map(([k, v]) => ({ model: "Isolation Forest", feature: k, value: v, total: iso.score })),
     ...Object.entries(lgbm.contributions).map(([k, v]) => ({ model: "LightGBM", feature: k, value: v, total: lgbm.score })),
   ]
