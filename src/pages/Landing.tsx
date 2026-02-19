@@ -85,7 +85,7 @@ const bullets = [
   "Real-time, non-blocking pre-authorization detection",
   "Clean, explainable risk scoring with feature breakdown",
   "Lightweight TypeScript engine — edge deployable",
-  "79-user behavioral dataset across 10 distinct personas",
+  "120+ user behavioral dataset across 10 distinct personas",
 ];
 
 /* ─── page ──────────────────────────────────────────────────── */

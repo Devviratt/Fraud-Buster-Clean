@@ -150,6 +150,52 @@ export const userDataset: DatasetUser[] = [
   { userId: "TRV-004", name: "Deepika Chatterjee", monthlySalary: 110000, avgTransactionAmount: 6000, avgMonthlySpend: 85000, avgWeeklyFrequency: 14, usualCities: ["Kolkata", "Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Bhubaneswar"], usualUpiIds: ["irctc@sbi", "uber@icici", "amazon@apl", "flipkart@axl", "tataneu@icici", "bookmyshow@hdfcbank"], transactionHistory: generateHistory("TRV-004", { amount: 6000, cities: ["Kolkata", "Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai"], upiIds: ["irctc@sbi", "uber@icici", "amazon@apl", "flipkart@axl", "tataneu@icici"] }, 75), accountAgeDays: 2000, deviceFingerprints: ["dev-t04a", "dev-t04b"], historicalFraudCount: 0, profileType: "salaried" },
 ];
 
+const TARGET_USER_DATASET_SIZE = 120;
+
+function expandUserDatasetToTarget(baseUsers: DatasetUser[], targetSize: number): DatasetUser[] {
+  const expandedUsers: DatasetUser[] = [];
+  const multipliers = [0.82, 0.9, 0.95, 1.05, 1.12, 1.2];
+  const needed = Math.max(0, targetSize - baseUsers.length);
+
+  for (let i = 0; i < needed; i++) {
+    const template = baseUsers[i % baseUsers.length];
+    const multiplier = multipliers[i % multipliers.length];
+    const syntheticId = `SYN-${String(i + 1).padStart(3, "0")}`;
+    const historyCount = Math.max(10, Math.min(80, Math.round(template.transactionHistory.length * 0.85 + (i % 8))));
+    const avgTxnAmount = Math.max(80, Math.round(template.avgTransactionAmount * multiplier));
+
+    expandedUsers.push({
+      userId: syntheticId,
+      name: `${template.name} ${String.fromCharCode(65 + (i % 26))}`,
+      monthlySalary: Math.max(5000, Math.round(template.monthlySalary * multiplier)),
+      avgTransactionAmount: avgTxnAmount,
+      avgMonthlySpend: Math.max(avgTxnAmount * 8, Math.round(template.avgMonthlySpend * multiplier)),
+      avgWeeklyFrequency: Math.max(3, Math.round(template.avgWeeklyFrequency * (0.9 + (i % 4) * 0.05))),
+      usualCities: [...template.usualCities],
+      usualUpiIds: [...template.usualUpiIds],
+      transactionHistory: generateHistory(
+        syntheticId,
+        {
+          amount: avgTxnAmount,
+          cities: [...template.usualCities],
+          upiIds: [...template.usualUpiIds],
+        },
+        historyCount
+      ),
+      accountAgeDays: Math.max(20, template.accountAgeDays - (i % 300)),
+      deviceFingerprints: template.deviceFingerprints.map((id) => `${id}-syn${(i % 5) + 1}`),
+      historicalFraudCount: i % 12 === 0 ? Math.min(template.historicalFraudCount + 1, 5) : template.historicalFraudCount,
+      profileType: template.profileType,
+    });
+  }
+
+  return expandedUsers;
+}
+
+if (userDataset.length < TARGET_USER_DATASET_SIZE) {
+  userDataset.push(...expandUserDatasetToTarget(userDataset, TARGET_USER_DATASET_SIZE));
+}
+
 // Anomalous cities not in any user's usual set
 export const anomalousCities = ["Imphal", "Gangtok", "Port Blair", "Leh", "Itanagar", "Shillong", "Aizawl", "Kohima"];
 
