@@ -21,10 +21,10 @@ const App = () => (
             <Sonner />
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/simulate" element={<Simulate />} />
-                <Route path="/landing" element={<Landing />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route index element={<Index />} />
+                <Route path="simulate" element={<Simulate />} />
+                <Route path="landing" element={<Landing />} />
+                <Route path="*" element={<Navigate to="/landing" replace />} />
               </Routes>
             </BrowserRouter>
           </ReviewedTransactionStoreProvider>
