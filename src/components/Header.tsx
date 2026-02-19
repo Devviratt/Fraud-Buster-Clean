@@ -29,7 +29,7 @@ const Header = () => {
     <header className="glass-header px-6 py-3.5 sticky top-0 z-50">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         {/* Logos */}
-        <Link to="/landing" className="flex items-center gap-2.5 group">
+        <Link to="/" className="flex items-center gap-2.5 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-105"
             style={{ background: "hsl(221,83%,53%)" }}>
             <Shield className="h-4.5 w-4.5 text-white" />
@@ -41,8 +41,8 @@ const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-1">
-          {navLink("/landing", "Home", <Home className="h-3.5 w-3.5" />)}
-          {navLink("/", "Dashboard")}
+          {navLink("/", "Home", <Home className="h-3.5 w-3.5" />)}
+          {navLink("/dashboard", "Dashboard")}
           {navLink("/simulate", "Simulate", <BarChart3 className="h-3.5 w-3.5" />)}
 
           <div className="ml-2 flex items-center gap-2 rounded-xl border border-border/60 bg-white/60 backdrop-blur px-3 py-1.5">
@@ -56,4 +56,5 @@ const Header = () => {
 };
 
 export default Header;
+
 

@@ -75,7 +75,7 @@ const PrivacyPolicy = () => {
         style={{ background: "hsla(0,0%,100%,0.70)" }}
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link to="/landing" className="flex items-center gap-2.5">
+          <Link to="/" className="flex items-center gap-2.5">
             <div
               className="flex h-9 w-9 items-center justify-center rounded-xl shadow-sm"
               style={{ background: "hsl(221,83%,53%)" }}
@@ -86,7 +86,7 @@ const PrivacyPolicy = () => {
               Fraud Buster
             </span>
           </Link>
-          <Link to="/landing">
+          <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Back to Home
@@ -351,7 +351,7 @@ const PrivacyPolicy = () => {
                 Read Terms & Conditions
               </Button>
             </Link>
-            <Link to="/landing">
+            <Link to="/">
               <Button className="gap-2" style={{ background: "hsl(221,83%,53%)" }}>
                 <Shield className="h-4 w-4" />
                 Back to Home
@@ -385,3 +385,4 @@ const PrivacyPolicy = () => {
 };
 
 export default PrivacyPolicy;
+

@@ -174,7 +174,7 @@ const NotFound = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/dashboard")}
               className="hover:bg-primary/10"
             >
               Dashboard
@@ -190,10 +190,10 @@ const NotFound = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/landing")}
+              onClick={() => navigate("/")}
               className="hover:bg-primary/10"
             >
-              Landing Page
+              Home
             </Button>
           </div>
         </motion.div>
@@ -203,3 +203,4 @@ const NotFound = () => {
 };
 
 export default NotFound;
+
