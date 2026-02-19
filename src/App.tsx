@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Simulate from "./pages/Simulate";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/simulate" element={<Simulate />} />
                 <Route path="/landing" element={<Landing />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsConditions />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

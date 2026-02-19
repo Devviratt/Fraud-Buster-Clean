@@ -23,9 +23,15 @@ const Index = () => {
         <TransactionsTable />
       </main>
       <footer className="border-t border-border mt-6 px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
-          <Shield className="h-3 w-3" />
-          <span>Lightweight hybrid scoring for real-time edge deployment. Detection Layer: Flagging Only — No Automatic Blocking.</span>
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <Shield className="h-3 w-3" />
+            <span>Lightweight hybrid scoring for real-time edge deployment. Detection Layer: Flagging Only — No Automatic Blocking.</span>
+          </div>
+          <div className="flex gap-4 text-[11px] text-muted-foreground">
+            <a href="/privacy" className="hover:underline">Privacy Policy</a>
+            <a href="/terms" className="hover:underline">Terms & Conditions</a>
+          </div>
         </div>
       </footer>
     </div>
