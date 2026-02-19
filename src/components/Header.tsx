@@ -28,7 +28,7 @@ const Header = () => {
   return (
     <header className="glass-header px-6 py-3.5 sticky top-0 z-50">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        {/* Logo */}
+        {/* Logos */}
         <Link to="/landing" className="flex items-center gap-2.5 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-105"
             style={{ background: "hsl(221,83%,53%)" }}>

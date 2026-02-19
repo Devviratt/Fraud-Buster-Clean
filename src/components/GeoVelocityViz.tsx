@@ -7,7 +7,7 @@ interface GeoVelocityVizProps {
   timeDiffMinutes: number;
 }
 
-// Simulated distances between Indian cities (km)
+// Simulated distance between Indian cities (km)
 const cityDistances: Record<string, Record<string, number>> = {
   "delhi": { "mumbai": 1400, "bangalore": 2150, "chennai": 2180, "kolkata": 1500, "hyderabad": 1550, "pune": 1450, "ahmedabad": 950, "jaipur": 280, "lucknow": 550, "kochi": 2650, "imphal": 2450, "gangtok": 1600, "gurgaon": 30, "noida": 25, "goa": 1850 },
   "mumbai": { "delhi": 1400, "bangalore": 980, "chennai": 1330, "kolkata": 2050, "hyderabad": 710, "pune": 150, "ahmedabad": 530, "jaipur": 1150, "lucknow": 1350, "kochi": 1350, "imphal": 3150, "goa": 590 },
