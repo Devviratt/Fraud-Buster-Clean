@@ -24,9 +24,9 @@ const App = () => (
             <Sonner />
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <Routes>
-                <Route index element={<Index />} />
+                <Route index element={<Landing />} />
                 <Route path="simulate" element={<Simulate />} />
-                <Route path="landing" element={<Landing />} />
+                <Route path="dashboard" element={<Index />} />
                 <Route path="privacy" element={<PrivacyPolicy />} />
                 <Route path="terms" element={<TermsConditions />} />
                 <Route path="*" element={<NotFound />} />
@@ -40,3 +40,4 @@ const App = () => (
 );
 
 export default App;
+

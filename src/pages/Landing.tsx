@@ -130,7 +130,7 @@ const Landing = () => {
           </div>
           <div className="flex items-center gap-3">
             <Link
-              to="/"
+              to="/dashboard"
               className="hidden sm:block px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors"
               style={{ color: "hsl(221,83%,53%)" }}
             >
@@ -184,7 +184,7 @@ const Landing = () => {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              to="/"
+              to="/dashboard"
               className="flex items-center gap-2 justify-center rounded-2xl border border-blue-200 bg-white/70 px-7 py-3 text-sm font-semibold transition-all hover:bg-white"
               style={{ color: "hsl(221,83%,53%)" }}
             >
@@ -440,7 +440,7 @@ const Landing = () => {
             Detection Layer: Flagging Only — No Automatic Blocking
           </p>
           <div className="flex gap-4 text-[11px]" style={{ color: "hsl(215,16%,55%)" }}>
-            <Link to="/" className="hover:underline">Dashboard</Link>
+            <Link to="/dashboard" className="hover:underline">Dashboard</Link>
             <Link to="/simulate" className="hover:underline">Simulate</Link>
             <Link to="/privacy" className="hover:underline">Privacy</Link>
             <Link to="/terms" className="hover:underline">Terms</Link>
@@ -452,3 +452,4 @@ const Landing = () => {
 };
 
 export default Landing;
+
