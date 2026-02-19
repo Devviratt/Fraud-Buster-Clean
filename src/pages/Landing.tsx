@@ -410,7 +410,7 @@ const Landing = () => {
               Launch Demo
             </Link>
             <a
-              href="https://github.com"
+              href="https://github.com/Devviratt/Fraud-Buster-Clean"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 justify-center rounded-2xl border border-blue-200 bg-white/70 px-7 py-3 text-sm font-semibold transition-all hover:bg-white"
