@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 215 60% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 30% 94%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 25% 92%;
+    --muted-foreground: 215 16% 50%;
+
+    --accent: 210 30% 92%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 30% 88%;
+    --input: 214 30% 88%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    --safe: 142 71% 40%;
+    --safe-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+
+    --glass: 0 0% 100%;
+    --glass-border: 214 30% 88%;
+
+    --sidebar-background: 215 60% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 30% 92%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 30% 88%;
+    --sidebar-ring: 221 83% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Soft blue gradient canvas — matches landing page */
+    background: linear-gradient(135deg, hsl(215, 80%, 97%) 0%, hsl(220, 70%, 93%) 40%, hsl(230, 80%, 90%) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism card — white translucent, blurred, blue-tinted border */
+  .glass-card {
+    background: hsla(0, 0%, 100%, 0.70);
+    border: 1px solid hsla(214, 40%, 85%, 0.60);
+    box-shadow: 0 8px 32px hsla(221, 83%, 53%, 0.08), 0 1px 4px hsla(220, 20%, 40%, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px;
+  }
+
+  .glass-card-light {
+    background: hsla(210, 40%, 97%, 0.60);
+    border: 1px solid hsla(214, 40%, 88%, 0.50);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Sticky header — frosted glass */
+  .glass-header {
+    background: hsla(0, 0%, 100%, 0.75);
+    border-bottom: 1px solid hsla(214, 30%, 88%, 0.60);
+    box-shadow: 0 1px 12px hsla(221, 83%, 53%, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Risk color bars */
+  .risk-bar-safe    { background: hsl(var(--safe)); }
+  .risk-bar-warning { background: hsl(var(--warning)); }
+  .risk-bar-danger  { background: hsl(var(--danger)); }
+}
