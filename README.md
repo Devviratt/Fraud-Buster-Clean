@@ -12,7 +12,7 @@ Requires **Node.js ≥ 18** & npm — [install with nvm](https://github.com/nvm-
 
 ```sh
 # Clone the repository
-git clone https://github.com/Anandha-30/Fraud-Buster.git
+git clone https://github.com/Devviratt/Fraud-Buster.git
 
 # Navigate to the project directory
 cd Fraud-Buster/fraudbuster

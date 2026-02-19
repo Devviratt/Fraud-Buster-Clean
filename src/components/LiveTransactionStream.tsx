@@ -15,7 +15,7 @@ import GeoVelocityViz from "@/components/GeoVelocityViz";
 import { useToast } from "@/hooks/use-toast";
 import { useLiveTransactionStore, useReviewedTransactionStore } from "@/lib/transaction-store";
 
-// ─── Lifecycle Types ───────────────────────────────────────────────────────────
+// ─── Lifecycle Type ───────────────────────────────────────────────────────────
 
 type LifecycleState =
   | "INITIATED"

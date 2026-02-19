@@ -35,7 +35,7 @@ const flagBadge = (flag: boolean | undefined, trueLabel = "FLAGGED", falseLabel 
 const ReceiverRiskPanel = ({ data }: ReceiverRiskPanelProps) => {
   const [open, setOpen] = useState(true);
 
-  // If no receiver data at all, don't render
+  // If no receiver data at all, don't renders
   const hasAnyData =
     data.receiver_risk !== undefined ||
     data.receiver_reasons?.length ||

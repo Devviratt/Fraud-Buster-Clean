@@ -96,7 +96,7 @@ const ConfirmationModal = ({ open, onOpenChange, result, onConfirm }: Confirmati
             </div>
           )}
 
-          {/* Actions */}
+          {/* Action */}
           <div className="flex gap-2 pt-1">
             <Button
               className="flex-1 bg-safe hover:bg-safe/90 text-safe-foreground text-sm"
