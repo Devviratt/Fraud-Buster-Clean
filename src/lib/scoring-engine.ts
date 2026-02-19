@@ -621,6 +621,31 @@ export function getRiskLevel(score: number): RiskLevel {
   return "SAFE";
 }
 
+function createDefaultDeviationMetrics(): DeviationMetrics {
+  return {
+    amountDeviation: 0,
+    monthlySpendRatio: 0,
+    locationFlag: false,
+    frequencySpike: false,
+    isFirstTimeBeneficiary: false,
+    upiAgeDays: 0,
+    upiAgeFlag: false,
+    isPaymentLink: false,
+    linkRisk: "none",
+    isNightTransaction: false,
+    deviceChangeFlag: false,
+    rapidSmallTransactionsFlag: false,
+    geoVelocityFlag: false,
+    beneficiaryRiskScore: 0,
+    accountAgeDays: 0,
+    transactionTimeRisk: 0,
+    historicalFraudExposureFlag: false,
+    salaryRatio: 0,
+    behavioralDriftScore: 0,
+    linkRiskScore: 0,
+  };
+}
+
 /**
  * Full scoring pipeline from features -> rule + ML -> final decision output.
  */
@@ -638,30 +663,52 @@ export function scoreTransaction(
   previousCity?: string,
   previousTimestamp?: string
 ): ScoringResult {
-  const metrics = computeDeviations(amount, city, upiId, upiInfo, user, recentTxnCountLastHour, paymentLink, timestamp, deviceId, previousCity, previousTimestamp);
-  const { ruleScore, reasons } = computeRuleScore(amount, user, metrics);
-  const { mlScore, anomalyScore, fraudProbability, mlReasons } = computeMLScore(metrics);
-  const finalScore = computeFinalScore(ruleScore, mlScore);
-  const riskLevel = getAdaptiveRiskLevel(finalScore, user);
-  const confidenceScore = computeConfidenceScore(ruleScore, mlScore);
+  try {
+    const metrics = computeDeviations(amount, city, upiId, upiInfo, user, recentTxnCountLastHour, paymentLink, timestamp, deviceId, previousCity, previousTimestamp);
+    const { ruleScore, reasons } = computeRuleScore(amount, user, metrics);
+    const { mlScore, anomalyScore, fraudProbability, mlReasons } = computeMLScore(metrics);
+    const finalScore = computeFinalScore(ruleScore, mlScore);
+    const riskLevel = getAdaptiveRiskLevel(finalScore, user);
+    const confidenceScore = computeConfidenceScore(ruleScore, mlScore);
 
-  const allReasons = [...reasons, ...mlReasons];
-  if (allReasons.length === 0) {
-    allReasons.push("Transaction matches user's typical spending pattern");
+    const allReasons = [...reasons, ...mlReasons];
+    if (allReasons.length === 0) {
+      allReasons.push("Transaction matches user's typical spending pattern");
+    }
+
+    return {
+      transactionId,
+      riskScore: finalScore,
+      riskLevel,
+      ruleScore,
+      mlScore,
+      anomalyScore,
+      fraudProbability,
+      behavioralScore: Math.round((ruleScore + mlScore) / 2),
+      reasons: allReasons,
+      action: finalScore >= 50 ? "CONFIRMATION_REQUIRED" : "ALLOW",
+      metrics,
+      confidenceScore,
+    };
   }
 
-  return {
-    transactionId,
-    riskScore: finalScore,
-    riskLevel,
-    ruleScore,
-    mlScore,
-    anomalyScore,
-    fraudProbability,
-    behavioralScore: Math.round((ruleScore + mlScore) / 2),
-    reasons: allReasons,
-    action: finalScore >= 50 ? "CONFIRMATION_REQUIRED" : "ALLOW",
-    metrics,
-    confidenceScore,
-  };
+  catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown scoring error";
+    return {
+      transactionId: transactionId || "unknown",
+      riskScore: 50,
+      riskLevel: "WARNING",
+      ruleScore: 0,
+      mlScore: 0,
+      anomalyScore: 0,
+      fraudProbability: 0,
+      behavioralScore: 0,
+      reasons: [`Scoring fallback applied due to processing error: ${errorMessage}`],
+      action: "CONFIRMATION_REQUIRED",
+      metrics: createDefaultDeviationMetrics(),
+      confidenceScore: 20,
+    };
+  }
 }
+
+
