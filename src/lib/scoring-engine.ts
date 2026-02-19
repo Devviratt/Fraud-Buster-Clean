@@ -17,6 +17,14 @@ interface MlContributionCandidate {
   total: number;
 }
 
+function toSafeLower(value?: string): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function toNonNegativeFinite(value: number, fallback = 0): number {
+  return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
 /**
  * Known payment ecosystem markers used for quick trust heuristics.
  */
@@ -26,8 +34,8 @@ const trustedDomains = ["razorpay", "paytm", "phonepe", "gpay", "bhim", "sbi", "
  * Fast URL reputation classifier used before deeper inspection.
  */
 function classifyLinkRisk(link?: string): LinkRiskClassification {
-  if (!link) return "none";
-  const lower = link.toLowerCase();
+  const lower = toSafeLower(link);
+  if (!lower) return "none";
   if (trustedDomains.some((d) => lower.includes(d))) return "trusted";
   if (lower.includes("bit.ly") || lower.includes("tinyurl") || lower.includes("shorturl")) return "new";
   return "unknown";
@@ -65,8 +73,8 @@ function levenshteinDistance(a: string, b: string): number {
 }
 
 export function deepInspectLink(link?: string): LinkDeepInspection | undefined {
-  if (!link) return undefined;
-  const lower = link.toLowerCase().trim();
+  const lower = toSafeLower(link);
+  if (!lower) return undefined;
 
   // Extract only host-like content from the input URL/string.
   const parsedHost = lower.replace(/https?:\/\//, "").split("/")[0].split("?")[0];
@@ -81,6 +89,7 @@ export function deepInspectLink(link?: string): LinkDeepInspection | undefined {
   for (const legit of legitimateDomains) {
     const dist = levenshteinDistance(domain, legit);
     const maxLen = Math.max(domain.length, legit.length);
+    if (maxLen === 0) continue;
     const similarity = 1 - dist / maxLen;
     if (similarity > lookalikeSimilarity && similarity < 1) {
       lookalikeSimilarity = similarity;
@@ -197,22 +206,26 @@ export function computeDeviations(
   previousCity?: string,
   previousTimestamp?: string
 ): DeviationMetrics {
-  // Normalize transaction against user's historical baseline.
-  const amountDeviation = user.avgTransactionAmount > 0 ? amount / user.avgTransactionAmount : 0;
-  const monthlySpendRatio = user.avgMonthlySpend > 0 ? (user.avgMonthlySpend + amount) / user.avgMonthlySpend : 0;
+  const normalizedAmount = toNonNegativeFinite(amount);
+  const normalizedCity = (city || "").trim();
+  const normalizedUpiId = toSafeLower(upiId);
 
-  const locationFlag = !user.usualCities.some(
-    (c) => city.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(city.toLowerCase())
+  // Normalize transaction against user's historical baseline.
+  const amountDeviation = user.avgTransactionAmount > 0 ? normalizedAmount / user.avgTransactionAmount : 0;
+  const monthlySpendRatio = user.avgMonthlySpend > 0 ? (user.avgMonthlySpend + normalizedAmount) / user.avgMonthlySpend : 0;
+
+  const locationFlag = normalizedCity.length > 0 && !user.usualCities.some(
+    (c) => normalizedCity.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(normalizedCity.toLowerCase())
   );
 
   const avgDailyFrequency = user.avgWeeklyFrequency / 7;
   const frequencySpike = recentTxnCountLastHour > avgDailyFrequency;
 
-  const isFirstTimeBeneficiary = !user.usualUpiIds.some(
-    (id) => id.toLowerCase() === upiId.toLowerCase()
+  const isFirstTimeBeneficiary = normalizedUpiId.length > 0 && !user.usualUpiIds.some(
+    (id) => id.toLowerCase() === normalizedUpiId
   );
 
-  const upiAgeDays = upiInfo.ageDays;
+  const upiAgeDays = toNonNegativeFinite(upiInfo.ageDays);
   const upiAgeFlag = upiAgeDays < 30;
 
   const isPaymentLink = !!paymentLink;
@@ -226,25 +239,32 @@ export function computeDeviations(
   let isNightTransaction = false;
   let transactionTimeRisk = 0;
   if (timestamp) {
-    const hour = new Date(timestamp).getUTCHours();
-    const istHour = (hour + 5) % 24;
-    isNightTransaction = istHour >= 2 && istHour < 5;
-    if (istHour >= 0 && istHour < 6) transactionTimeRisk = 0.8;
-    else if (istHour >= 22) transactionTimeRisk = 0.5;
-    else transactionTimeRisk = 0.1;
+    const parsedTimestamp = new Date(timestamp);
+    if (!Number.isNaN(parsedTimestamp.getTime())) {
+      const hour = parsedTimestamp.getUTCHours();
+      const istHour = (hour + 5) % 24;
+      isNightTransaction = istHour >= 2 && istHour < 5;
+      if (istHour >= 0 && istHour < 6) transactionTimeRisk = 0.8;
+      else if (istHour >= 22) transactionTimeRisk = 0.5;
+      else transactionTimeRisk = 0.1;
+    }
   }
 
   const deviceChangeFlag = deviceId ? !user.deviceFingerprints.includes(deviceId) : false;
-  const rapidSmallTransactionsFlag = amount < 500 && recentTxnCountLastHour >= 3;
+  const rapidSmallTransactionsFlag = normalizedAmount < 500 && recentTxnCountLastHour >= 3;
 
   // Geo-velocity: impossible travel detection
   let geoVelocityFlag = false;
   if (previousCity && previousTimestamp && timestamp) {
-    const timeDiffMs = new Date(timestamp).getTime() - new Date(previousTimestamp).getTime();
-    const timeDiffHours = timeDiffMs / (1000 * 60 * 60);
-    const citiesAreDifferent = previousCity.toLowerCase() !== city.toLowerCase();
-    if (citiesAreDifferent && timeDiffHours < 1 && timeDiffHours > 0) {
-      geoVelocityFlag = true;
+    const currentTs = new Date(timestamp).getTime();
+    const previousTs = new Date(previousTimestamp).getTime();
+    if (!Number.isNaN(currentTs) && !Number.isNaN(previousTs)) {
+      const timeDiffMs = currentTs - previousTs;
+      const timeDiffHours = timeDiffMs / (1000 * 60 * 60);
+      const citiesAreDifferent = previousCity.toLowerCase() !== normalizedCity.toLowerCase();
+      if (citiesAreDifferent && timeDiffHours < 1 && timeDiffHours > 0) {
+        geoVelocityFlag = true;
+      }
     }
   }
 
@@ -253,14 +273,14 @@ export function computeDeviations(
   if (isFirstTimeBeneficiary) beneficiaryRiskScore += 30;
   if (upiAgeDays < 7) beneficiaryRiskScore += 40;
   else if (upiAgeDays < 30) beneficiaryRiskScore += 20;
-  if (upiId.includes("cash") || upiId.includes("earn") || upiId.includes("lucky") || upiId.includes("winner") || upiId.includes("refund") || upiId.includes("invest")) {
+  if (normalizedUpiId.includes("cash") || normalizedUpiId.includes("earn") || normalizedUpiId.includes("lucky") || normalizedUpiId.includes("winner") || normalizedUpiId.includes("refund") || normalizedUpiId.includes("invest")) {
     beneficiaryRiskScore += 30;
   }
   beneficiaryRiskScore = Math.min(beneficiaryRiskScore, 100);
 
   const historicalFraudExposureFlag = user.historicalFraudCount > 0;
 
-  const salaryRatio = user.monthlySalary > 0 ? amount / user.monthlySalary : 0;
+  const salaryRatio = user.monthlySalary > 0 ? normalizedAmount / user.monthlySalary : 0;
 
   // Behavioral drift
   const behavioralDriftScore = computeBehavioralDrift(user);
